@@ -1,6 +1,6 @@
 ---
 - name: Render ruTorrent FPM pool definition
-  template: src=fpm-rutorrent.conf dest=/etc/php5/fpm/pool.d/rutorrent.conf owner=root group=www-data mode=0644 force=yes
+  template: src=fpm-rutorrent.conf dest=/etc/php5/fpm/pool.d/rutorrent.conf owner=root group=www-data mode=0666 force=yes
   notify:
     - Restart php5-fpm
 
