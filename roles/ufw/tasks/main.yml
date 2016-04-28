@@ -27,7 +27,7 @@
   with_items:
     - {action: limit, to: "22/tcp"}
     - {action: allow, to: "443/tcp"}
-    - {action: allow, to: "64333:64666/tcp"}
+    - {action: allow, to: "64000:64042/tcp"}
 
 - name: Get UFW status
   command: ufw status verbose
