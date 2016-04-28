@@ -27,7 +27,7 @@ keys.layout.set = {{ rt_keys_layout }}
 pieces.hash.on_completion.set = no
 
 # range for listening port
-network.port_range.set = 64333-64666
+network.port_range.set = 64000-64042
 network.port_random.set = no
 
 # tracker-less torrent support
