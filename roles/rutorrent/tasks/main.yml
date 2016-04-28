@@ -9,7 +9,7 @@
   user: name=rtorrent groups=www-data append=yes
 
 - name: Create rutorrent home directories
-  file: path=/home/rutorrent/{{ item }} state=directory owner=rutorrent group=www-data mode=0750
+  file: path=/home/rutorrent/{{ item }} state=directory owner=rutorrent group=www-data mode=0770
   with_items:
     - .
     - bin
