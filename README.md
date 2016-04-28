@@ -1,10 +1,6 @@
-# pimp-my-box
+# ansible-carve
 
-![logo](https://raw.githubusercontent.com/pyroscope/pimp-my-box/master/images/pimp-my-box.png)
-[![issues](https://img.shields.io/github/issues/pyroscope/pimp-my-box.svg)](https://github.com/pyroscope/pimp-my-box/issues)
-[![travis](https://api.travis-ci.org/pyroscope/pimp-my-box.svg)](https://travis-ci.org/pyroscope/pimp-my-box)
-
-Automated install of rTorrent-PS etc. via
+Automated install of carve-core etc. via
 [Ansible](http://docs.ansible.com/).
 
 **Contents**
@@ -41,27 +37,17 @@ before executing them you just have to add a few values like the name of your ta
 The playbooks contained in this repository install the following components:
 
 * Security hardening of your server.
-* [rTorrent-PS](https://github.com/pyroscope/rtorrent-ps#rtorrent-ps) with UI enhancements, colorization, and some added features.
-* PyroScope [command line tools](https://github.com/pyroscope/pyrocore#pyrocore) (pyrocore) for rTorrent automation.
 
 Optionally:
 
-* [FlexGet](http://flexget.com/), the best feed reader and download automation tool there is.
-* [ruTorrent](https://github.com/Novik/ruTorrent) web UI, served by [Nginx](http://wiki.nginx.org/) over HTTPS and run by PHP5-FPM.
+* More things
 
 Each includes a default configuration, so you end up with a fully working system.
 
 The Ansible playbooks and related commands have been tested on Debian Jessie, Ubuntu Trusty, and Ubuntu Lucid
-– the recommended distribution is Ubuntu Server LTS 64bit (i.e. release 14.04 at the time of this writing).
 They should work on other platforms too, especially when they're Debian derivatives, but you might have to make some modifications.
-Files are mostly installed into the user accounts `rtorrent` and `rutorrent`,
-and only a few global configuration files are affected. If you run this against a host
+Files are mostly installed into the user account `bts` and only a few global configuration files are affected. If you run this against a host
 with an existing installation, make sure that there are no conflicts.
-
-If you have questions or need help, please use
-the [pyroscope-users](http://groups.google.com/group/pyroscope-users) mailing list
-or the inofficial ``##rtorrent`` channel on ``irc.freenode.net``.
-
 
 ## How to Use This?
 
@@ -124,8 +110,8 @@ Unsurprisingly, you also need ``git`` installed for this.
 ```sh
 which git || sudo apt-get install git
 mkdir ~/src; cd ~/src
-git clone "https://github.com/pyroscope/pimp-my-box.git"
-cd "pimp-my-box"
+git clone "https://github.com/BlackTieSkiRentals/ansible-carve.git"
+cd "ansible-carve"
 ```
 
 
@@ -146,7 +132,7 @@ my-box.example.com
 
 You also need a file with the specifics of your box in ``host_vars/my-box/main.yml``,
 the so-called host variables. There is an example in
-[host_vars/rpi/main.yml](https://github.com/pyroscope/pimp-my-box/blob/master/host_vars/rpi/main.yml)
+[host_vars/rpi/main.yml](https://github.com/ansible-carve/blob/master/host_vars/rpi/main.yml)
 which works with a default *Raspberry Pi* setup that comes with a password-less sudo account.
 Normally you'd add `ansible_sudo_pass` in `host_vars/my-box/secrets.yml`, or else use
 `-K` on the command line to prompt for the password.
@@ -197,7 +183,7 @@ To give you an idea why this way to do things is way superior to the usual
 you can now also easily call commands over a fleet of machines, *in parallel*:
 
 ```sh
-ansible all -i hosts -f 9 -a "apt-get -qq update"
+ansible all -i hosts -f 9 -a "sudo apt-get -qq update"
 ```
 
 
@@ -208,37 +194,13 @@ If you added more than one host into the ``box`` group and want to only address 
 use ``ansible-playbook -i hosts -l ‹hostname› site.yml``.
 Add (multiple) ``-v`` to get more detailed information on what each task does.
 
-Note that at the moment, you still need to additionally install (`dpkg -i /root/rt-ps.deb`)
-the `rtorrent-ps` Debian package that was downloaded from
-[Bintray](https://bintray.com/pyroscope/rtorrent-ps/rtorrent-ps#files).
-
-If your Linux release isn't supported, you'll see a message like the following:
-
-    WARNING - No DEB package URL defined for '‹platform›',
-    you need to install /opt/rtorrent manually!
-
-In that case,
-[compile a binary yourself](https://github.com/pyroscope/pyroscope/blob/wiki/DebianInstallFromSource.md#build-rtorrent-and-core-dependencies-from-source).
-
-Also, the SSL certificate generation is not fully automatic yet, run the command shown in
+NOTE: the SSL certificate generation is not fully automatic yet, run the command shown in
 the error message you'll get, as `root` in the `/etc/nginx/ssl` directory – once the
 certificate is created, re-run the playbook and it should progress beyond that point.
 Of course, you can also copy a certificate you got from other sources to the paths
 `/etc/nginx/ssl/cert.key` and `/etc/nginx/ssl/cert.pem`.
 See [this blog post](https://raymii.org/s/tutorials/Strong_SSL_Security_On_nginx.html)
 if you want *excessive* detail on secure HTTPS setups.
-
-
-### Starting rTorrent
-
-As mentione before, after successfully running the Ansible playbook, a fully configured
-setup is found on the target. So to start rTorrent, call this command as the `rtorrent` user:
-
-```sh
-tmux -2u new -n rT-PS -s rtorrent "~/rtorrent/start; exec bash"
-```
-
-To detach from this session (meaning rTorrent continues to run), press `Ctrl-a` followed by `d`.
 
 
 ### Activating Firewall Rules
@@ -273,55 +235,18 @@ ufw status verbose  # show all the settings
 
 ### Changing Configuration Defaults
 
-Once created, the file `rtorrent.rc` is only overwritten when you provide
-`-e force_cfg=yes` on the Ansible command line, and `_rtlocal.rc` is never
-overwritten.
-This gives you the opportunity to easily refresh the main configuration from
-this repository, while still being able to provide your own version from
-a custom playbook (which you then have to merge with changes made to the master
-in this repo).
-Or apply customizations manually, by editing ``~rtorrent/rtorrent/_rtlocal.rc``.
+Once created, the config files are only overwritten when you provide
+`-e force_cfg=yes` on the Ansible command line!
 
 
 ### Enabling Optional Applications
 
 To activate the optional applications, add these settings to your `host_vars`:
 
- * `flexget_enabled: yes` for FlexGet.
- * `rutorrent_enabled: yes` for ruTorrent (see below for details).
+ * `foo_enabled: yes` for Foo.
+ * `bar_enabled: yes` for Bar.
 
 Then run the playbook again.
-
-FlexGet is just installed ready to be used, for full operation a configuration file
-located in `~/.config/flexget/config.yml` must be added
-(see the [cookbook](http://flexget.com/wiki/Cookbook)).
-A cronjob is provided too (called every 11 minutes), but only starts to do something meaningful
-after you add that configuration file.
-Look into the files `~/.config/flexget/flexget.log` and `~/.config/flexget/flexget-cron.log`
-to diagnose any problems.
-
-ruTorrent, if enabled, is available at `https://my-box.example.com/rutorrent/`.
-
-
-### Installing and Updating ruTorrent
-
-The ruTorrent web UI is an optional add-on, and you have to activate it by setting
-`rutorrent_enabled` to `yes` and providing a `rutorrent_www_pass` value, usually in
-your `host_vars/my-box/main.yml` and `host_vars/my-box/secrets.yml` files, respectively.
-
-To update to a new version of ruTorrent, first add the desired version as
-`rutorrent_version` to your variables – that version has to be available on
-[Bintray](https://bintray.com/novik65/generic/ruTorrent#files).
-Then move the old installation tree away:
-
-```sh
-cd ~rutorrent
-mv ruTorrent-master _ruTorrent-master-$(date "+%Y-%m-%d-%H%M").bak
-tar cfz _profile-$(date "+%Y-%m-%d-%H%M").bak profile
-```
-
-Finally, rerun the playbook to install the new version. In case anything goes wrong,
-you can move back that backup.
 
 
 ## Advanced Configuration
@@ -340,54 +265,11 @@ python_bin: /usr/bin/python2
 venv_bin: /usr/bin/virtualenv
 ```
 
-
-### Using the bash Completion Handler
-
-The default configuration adds a *finished* event handler that calls the `~rtorrent/bin/_event.download.finished` script.
-That script in turn just calls any existing `_event.download.finished-*.sh` script,
-which allows you to easily add custom completion behaviour via your own playbooks.
-The passed parameters are `hash`, `name`, and `base_path`;
-the completion handler ensures the session state is flushed,
-so you can confidently read the session files associated with the provided hash.
-
-Here is an example `~/bin/_event.download.finished-jenkins.sh`
-that triggers a Jenkins job for any completed item:
-
-```sh
-#! /bin/bash
-#
-# Called in rTorrent event handler
-
-set -x
-
-infohash="${1:?You MUST provide the infohash of the completed item!}"
-url="http://localhost:8080/job/event.download.finished/build?delay=0sec"
-json="$(python -c "import json; print json.dumps(dict(parameter=dict(name='INFOHASH', value='$infohash')))")"
-
-http --ignore-stdin --form POST "$url" token=C0mpl3t3 json="$json"
-```
-
-You need to add the related `event.download.finished` job
-and `rtorrent` user to Jenkins of course.
-The user's credentials must be added to `~rtorrent/.netrc`, like this:
-
-```sh
-machine localhost
-    login rtorrent
-    password YOUR_PWD
-```
-
-Make sure to call `chmod 0600 ~/.netrc` after creating the file.
-To check that everything is working, download something
-and check the build history of your Jenkins job
-– if nothing seems to happen, look into `~/rtorrent/log/execute.log` to debug.
-
-
 ### Extending the Nginx Site
 
-The main Nginx server configuration includes any `/etc/nginx/conf.d/rutorrent-*.include`
-files, so you can add your own locations in addition to the default `/rutorrent` one.
-The main configuration file is located at `/etc/nginx/sites-available/rutorrent`.
+The main Nginx server configuration includes any `/etc/nginx/conf.d/carve-*.include`
+files, so you can add your own locations in addition to the default `/carve` one.
+The main configuration file is located at `/etc/nginx/sites-available/carve`.
 
 Use a `/etc/nginx/conf.d/upstream-*.conf` file in case you need to add your own `upstream` definitions.
 
@@ -405,14 +287,6 @@ export ANSIBLE_HOST_KEY_CHECKING=False
 
 
 ## Implementation Details
-
-### Secure Communications
-
-All internal RPC is done via Unix domain sockets.
-
- * `/var/run/php-fpm-rutorrent.sock` — *NginX* sends requests to PHP using the *php-fpm* pool `rutorrent` via this socket; it's owned by `rutorrent` and belongs to the `www-data` group.
- * `/var/torrent/.scgi_local` — The XMLRPC socket of rTorrent. It's group-writable and owned by `rtorrent.rtorrent`; ruTorrent talks directly to that socket (see issue #9 for problems with using /RPC2).
-
 
 ## References
 
